@@ -23,6 +23,7 @@ import type { FontString } from "./types";
 let cachedCjkRegex: RegExp | undefined;
 let cachedLineBreakRegex: RegExp | undefined;
 let cachedEmojiRegex: RegExp | undefined;
+let cachedGraphemeSegmenter: Intl.Segmenter | null | undefined;
 
 /**
  * Test if a given text contains any CJK characters (including symbols, punctuation, etc,).
@@ -53,6 +54,39 @@ const getEmojiRegex = () => {
   }
 
   return cachedEmojiRegex;
+};
+
+const getGraphemeSegmenter = (): Intl.Segmenter | null => {
+  if (cachedGraphemeSegmenter === undefined) {
+    try {
+      cachedGraphemeSegmenter = new Intl.Segmenter(undefined, {
+        granularity: "grapheme",
+      });
+    } catch {
+      cachedGraphemeSegmenter = null;
+    }
+  }
+
+  return cachedGraphemeSegmenter;
+};
+
+/**
+ * Splits a word into grapheme clusters (user-perceived characters) rather
+ * than raw codepoints, so a base character is never separated from a
+ * combining mark that must render stacked on top of it (e.g. Thai tone
+ * marks: นี้ปี้ → ["นี้", "ปี้"], not ["น", "ี", "้", "ป", "ี", "้"]).
+ *
+ * Falls back to splitting by codepoint on engines without `Intl.Segmenter`
+ * support.
+ */
+const graphemeClusters = (word: string): string[] => {
+  const segmenter = getGraphemeSegmenter();
+
+  if (!segmenter) {
+    return Array.from(word);
+  }
+
+  return Array.from(segmenter.segment(word), (s) => s.segment);
 };
 
 /**
@@ -595,7 +629,7 @@ const wrapWord = (
   satisfiesWordInvariant(word);
 
   const lines: WrappedTextLine[] = [];
-  const chars = Array.from(word);
+  const chars = graphemeClusters(word);
 
   let currentLine = "";
   let currentLineStart = wordStart;

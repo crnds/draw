@@ -73,6 +73,7 @@ beforeEach(async () => {
   await render(<Excalidraw handleKeyboardGlobally={true} />);
   h.state.width = 1000;
   h.state.height = 1000;
+  h.state.objectsSnapModeEnabled = false;
 
   // The bounds of hand-drawn linear elements may change after flipping, so
   // removing this style for testing

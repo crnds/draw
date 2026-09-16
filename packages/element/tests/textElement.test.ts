@@ -1,7 +1,14 @@
 import { getLineHeight } from "@excalidraw/common";
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
 
-import { FONT_FAMILY, TEXT_ALIGN, VERTICAL_ALIGN } from "@excalidraw/common";
+import {
+  containsThaiComboMarks,
+  FONT_FAMILY,
+  getVerticalOffset,
+  TEXT_ALIGN,
+  THAI_COMBO_MARKS_METRICS,
+  VERTICAL_ALIGN,
+} from "@excalidraw/common";
 
 import {
   computeContainerDimensionForBoundText,
@@ -10,7 +17,11 @@ import {
   getBoundTextMaxHeight,
   computeBoundTextPosition,
 } from "../src/textElement";
-import { detectLineHeight, getLineHeightInPx } from "../src/textMeasurements";
+import {
+  detectLineHeight,
+  getLineHeightInPx,
+  getTextHeight,
+} from "../src/textMeasurements";
 
 import type { ExcalidrawTextElementWithContainer } from "../src/types";
 
@@ -190,6 +201,81 @@ describe("Test getLineHeightInPx", () => {
     expect(
       getLineHeightInPx(textElement.fontSize, textElement.lineHeight),
     ).toBe(25);
+  });
+});
+
+describe("Test containsThaiComboMarks", () => {
+  it("should detect Thai tone marks stacked above an upper vowel", () => {
+    expect(containsThaiComboMarks("นี้")).toBe(true);
+    expect(containsThaiComboMarks("ขี้")).toBe(true);
+    expect(containsThaiComboMarks("ปี้")).toBe(true);
+  });
+
+  it("should not flag plain Thai text without combining marks", () => {
+    expect(containsThaiComboMarks("กา")).toBe(false);
+  });
+
+  it("should not flag non-Thai text", () => {
+    expect(containsThaiComboMarks("Excalidraw")).toBe(false);
+  });
+});
+
+describe("Test getLineHeightInPx with Thai combining marks", () => {
+  const fontSize = 20;
+  const lineHeight = getLineHeight(FONT_FAMILY.Excalifont);
+
+  it("should reserve extra headroom when text contains a stacked Thai tone mark", () => {
+    const plain = getLineHeightInPx(fontSize, lineHeight, "hello");
+    const thai = getLineHeightInPx(fontSize, lineHeight, "นี้");
+
+    expect(thai).toBeGreaterThan(plain);
+    expect(thai).toBe(fontSize * THAI_COMBO_MARKS_METRICS.lineHeight);
+  });
+
+  it("should not shrink a line height that's already taller than the Thai minimum", () => {
+    const largeLineHeight = (THAI_COMBO_MARKS_METRICS.lineHeight +
+      0.5) as typeof lineHeight;
+
+    expect(getLineHeightInPx(fontSize, largeLineHeight, "นี้")).toBe(
+      fontSize * largeLineHeight,
+    );
+  });
+});
+
+describe("Test getTextHeight with Thai combining marks", () => {
+  it("should size multi-line Thai text using the bumped line height", () => {
+    const fontSize = 20;
+    const lineHeight = getLineHeight(FONT_FAMILY.Excalifont);
+    const text = "นี้\nขี้";
+
+    expect(getTextHeight(text, fontSize, lineHeight)).toBe(
+      fontSize * THAI_COMBO_MARKS_METRICS.lineHeight * 2,
+    );
+  });
+});
+
+describe("Test getVerticalOffset with Thai combining marks", () => {
+  it("should use the Thai fallback ascender/descender metrics instead of the family's own", () => {
+    const fontSize = 20;
+    const lineHeightPx = getLineHeightInPx(
+      fontSize,
+      getLineHeight(FONT_FAMILY.Excalifont),
+      "นี้",
+    );
+
+    const plainOffset = getVerticalOffset(
+      FONT_FAMILY.Excalifont,
+      fontSize,
+      lineHeightPx,
+    );
+    const thaiOffset = getVerticalOffset(
+      FONT_FAMILY.Excalifont,
+      fontSize,
+      lineHeightPx,
+      "นี้",
+    );
+
+    expect(thaiOffset).not.toBe(plainOffset);
   });
 });
 

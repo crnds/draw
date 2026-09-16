@@ -653,12 +653,14 @@ const drawElementOnCanvas = (
         const lineHeightPx = getLineHeightInPx(
           element.fontSize,
           element.lineHeight,
+          element.text,
         );
 
         const verticalOffset = getVerticalOffset(
           element.fontFamily,
           element.fontSize,
           lineHeightPx,
+          element.text,
         );
 
         for (let index = 0; index < lines.length; index++) {

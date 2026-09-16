@@ -56,7 +56,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "lastPointerDownWith": "mouse",
   "multiElement": null,
   "name": "name",
-  "objectsSnapModeEnabled": false,
+  "objectsSnapModeEnabled": true,
   "openDialog": null,
   "openMenu": null,
   "openPopup": null,

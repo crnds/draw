@@ -70,6 +70,7 @@ describe("Test Linear Elements", () => {
     const comp = await render(<Excalidraw handleKeyboardGlobally={true} />);
     h.state.width = 1000;
     h.state.height = 1000;
+    h.state.objectsSnapModeEnabled = false;
     container = comp.container;
     interactiveCanvas = container.querySelector("canvas.interactive")!;
   });

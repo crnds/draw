@@ -150,14 +150,41 @@ export const GOOGLE_FONTS_RANGES = {
 export const LOCAL_FONT_PROTOCOL = "local:";
 
 /**
+ * Thai combining marks that render stacked above the preceding base character,
+ * e.g. the tone mark ้ (U+0E49) over the vowel ี (U+0E35) in นี้, ขี้, ปี้.
+ * None of our bundled fonts have Thai glyphs, so these always render with a
+ * substituted system Thai font, which needs noticeably more ascent headroom
+ * than our fonts' own metrics reserve — without it, the stacked mark gets
+ * clipped by the WYSIWYG editor and can collide with the line above.
+ */
+const THAI_COMBO_MARKS_REGEX = /[ัิ-ฺ็-๎]/u;
+
+export const containsThaiComboMarks = (text: string): boolean =>
+  THAI_COMBO_MARKS_REGEX.test(text);
+
+/**
+ * Approximate metrics for a system Thai font, used only to reserve enough
+ * ascent/line-height headroom for stacked combining marks — not tied to any
+ * bundled font (no Thai font is bundled; glyphs always come from the OS).
+ */
+export const THAI_COMBO_MARKS_METRICS = {
+  unitsPerEm: 1000,
+  ascender: 1200,
+  descender: -400,
+  lineHeight: 1.6,
+} as const;
+
+/**
  * Calculates vertical offset for a text with alphabetic baseline.
  */
 export const getVerticalOffset = (
   fontFamily: ExcalidrawTextElement["fontFamily"],
   fontSize: ExcalidrawTextElement["fontSize"],
   lineHeightPx: number,
+  text?: string,
 ) => {
   const { unitsPerEm, ascender, descender } =
+    (text && containsThaiComboMarks(text) && THAI_COMBO_MARKS_METRICS) ||
     FONT_METADATA[fontFamily]?.metrics ||
     FONT_METADATA[FONT_FAMILY.Excalifont].metrics;
 

@@ -432,6 +432,7 @@ export const textWysiwyg = ({
         lineHeightPx: getLineHeightInPx(
           updatedTextElement.fontSize,
           updatedTextElement.lineHeight,
+          updatedTextElement.text,
         ),
         textAlign,
         width: updatedTextElement.width,

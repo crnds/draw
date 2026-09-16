@@ -790,6 +790,7 @@ const renderElementToSvg = (
         const lineHeightPx = getLineHeightInPx(
           element.fontSize,
           element.lineHeight,
+          element.text,
         );
         const horizontalOffset =
           element.textAlign === "center"
@@ -801,6 +802,7 @@ const renderElementToSvg = (
           element.fontFamily,
           element.fontSize,
           lineHeightPx,
+          element.text,
         );
         const direction = isRTL(element.text) ? "rtl" : "ltr";
         const textAnchor =

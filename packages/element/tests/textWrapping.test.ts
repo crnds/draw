@@ -82,6 +82,17 @@ describe("Test wrapText", () => {
     expect(res).toBe("😀\n🗺\n🔥\n👩🏽‍🦰\n👨‍👩‍👧‍👦\n🇨🇿");
   });
 
+  it("should not split a Thai base character from its stacked combining marks when hard-wrapping", () => {
+    // two syllables, each a base consonant + upper vowel + tone mark
+    // (e.g. นี้/ปี้ as in "this year"), with no whitespace to break on
+    const text = "นี้ปี้";
+    // narrower than either syllable's advance width (30), so wrapWord must
+    // hard-wrap mid-word; each syllable should still stay intact
+    const maxWidth = 25;
+    const res = wrapText(text, font, maxWidth);
+    expect(res).toBe("นี้\nปี้");
+  });
+
   it("should wrap the text correctly when text contains hyphen", () => {
     let text =
       "Wikipedia is hosted by Wikimedia- Foundation, a non-profit organization that also hosts a range-of other projects";

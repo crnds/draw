@@ -1,10 +1,12 @@
 import {
   BOUND_TEXT_PADDING,
+  containsThaiComboMarks,
   DEFAULT_FONT_SIZE,
   DEFAULT_FONT_FAMILY,
   getFontString,
   isTestEnv,
   normalizeEOL,
+  THAI_COMBO_MARKS_METRICS,
 } from "@excalidraw/common";
 
 import type { FontString, ExcalidrawTextElement } from "./types";
@@ -87,12 +89,27 @@ export const detectLineHeight = (textElement: ExcalidrawTextElement) => {
 /**
  * We calculate the line height from the font size and the unitless line height,
  * aligning with the W3C spec.
+ *
+ * When `text` contains Thai combining marks that stack above the preceding
+ * character (e.g. the tone mark in นี้), the effective line height is bumped
+ * up to reserve enough headroom for the substituted system Thai font, since
+ * none of our own fonts have Thai glyphs and their own line-height doesn't
+ * account for it.
  */
 export const getLineHeightInPx = (
   fontSize: ExcalidrawTextElement["fontSize"],
   lineHeight: ExcalidrawTextElement["lineHeight"],
+  text?: string,
 ) => {
-  return fontSize * lineHeight;
+  const effectiveLineHeight =
+    text && containsThaiComboMarks(text)
+      ? (Math.max(
+          lineHeight,
+          THAI_COMBO_MARKS_METRICS.lineHeight,
+        ) as ExcalidrawTextElement["lineHeight"])
+      : lineHeight;
+
+  return fontSize * effectiveLineHeight;
 };
 
 // FIXME rename to getApproxMinContainerHeight
@@ -173,23 +190,28 @@ export const getTextHeight = (
   lineHeight: ExcalidrawTextElement["lineHeight"],
 ) => {
   const lineCount = splitIntoLines(text).length;
-  return getLineHeightInPx(fontSize, lineHeight) * lineCount;
+  return getLineHeightInPx(fontSize, lineHeight, text) * lineCount;
 };
 
 export const charWidth = (() => {
-  const cachedCharWidth: { [key: FontString]: Array<number> } = {};
+  // keyed by the full character/grapheme-cluster string rather than its first
+  // code unit, since a Thai base char + combining mark (e.g. "ี้") is a
+  // multi-codepoint unit that must not collide in the cache with other
+  // grapheme clusters sharing the same leading codepoint (e.g. "ี๊")
+  const cachedCharWidth: { [key: FontString]: Map<string, number> } = {};
 
   const calculate = (char: string, font: FontString) => {
-    const unicode = char.charCodeAt(0);
     if (!cachedCharWidth[font]) {
-      cachedCharWidth[font] = [];
+      cachedCharWidth[font] = new Map();
     }
-    if (!cachedCharWidth[font][unicode]) {
-      const width = getLineWidth(char, font);
-      cachedCharWidth[font][unicode] = width;
+    const cache = cachedCharWidth[font];
+    let width = cache.get(char);
+    if (width === undefined) {
+      width = getLineWidth(char, font);
+      cache.set(char, width);
     }
 
-    return cachedCharWidth[font][unicode];
+    return width;
   };
 
   const getCache = (font: FontString) => {
@@ -197,7 +219,7 @@ export const charWidth = (() => {
   };
 
   const clearCache = (font: FontString) => {
-    cachedCharWidth[font] = [];
+    cachedCharWidth[font] = new Map();
   };
 
   return {
@@ -212,7 +234,9 @@ export const getMinCharWidth = (font: FontString) => {
   if (!cache) {
     return 0;
   }
-  const cacheWithOutEmpty = cache.filter((val) => val !== undefined);
+  const cacheWithOutEmpty = Array.from(cache.values()).filter(
+    (val) => val !== undefined,
+  );
 
   return Math.min(...cacheWithOutEmpty);
 };
@@ -222,6 +246,8 @@ export const getMaxCharWidth = (font: FontString) => {
   if (!cache) {
     return 0;
   }
-  const cacheWithOutEmpty = cache.filter((val) => val !== undefined);
+  const cacheWithOutEmpty = Array.from(cache.values()).filter(
+    (val) => val !== undefined,
+  );
   return Math.max(...cacheWithOutEmpty);
 };
