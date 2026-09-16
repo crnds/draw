@@ -15,6 +15,7 @@ import {
   THEME,
   VERTICAL_ALIGN,
   applyDarkModeFilter,
+  getVerticalOffset,
 } from "@excalidraw/common";
 
 import type {
@@ -720,6 +721,68 @@ describe("textWysiwyg", () => {
 
       expect(textarea.style.width).toBe("792px");
       expect(h.elements[0].width).toBe(1000);
+    });
+  });
+
+  describe("Thai combining marks", () => {
+    const { h } = window;
+
+    beforeEach(async () => {
+      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      API.setElements([]);
+      API.setAppState({
+        currentItemFontFamily: FONT_FAMILY.Excalifont,
+        currentItemFontSize: 20,
+      });
+    });
+
+    it("should reserve extra line-height and top padding for stacked Thai tone marks", async () => {
+      UI.clickTool("text");
+      mouse.click(0, 0);
+
+      const editor = await getTextEditor();
+      updateTextEditor(editor, "ขี้วันนี้");
+
+      const text = h.elements[0] as ExcalidrawTextElement;
+      const lineHeightPx = getLineHeightInPx(
+        text.fontSize,
+        text.lineHeight,
+        text.text,
+      );
+      const baselineLineHeightPx = text.fontSize * text.lineHeight;
+      const verticalOffset = getVerticalOffset(
+        text.fontFamily,
+        text.fontSize,
+        lineHeightPx,
+        text.text,
+      );
+      const baselineVerticalOffset = getVerticalOffset(
+        text.fontFamily,
+        text.fontSize,
+        baselineLineHeightPx,
+      );
+      const expectedPaddingTop = Math.max(
+        0,
+        verticalOffset - baselineVerticalOffset,
+      );
+
+      expect(expectedPaddingTop).toBeGreaterThan(0);
+      expect(editor.style.lineHeight).toBe(`${lineHeightPx}px`);
+      expect(editor.style.paddingTop).toBe(`${expectedPaddingTop}px`);
+    });
+
+    it("should not add top padding or change line-height behavior for non-Thai text", async () => {
+      UI.clickTool("text");
+      mouse.click(0, 0);
+
+      const editor = await getTextEditor();
+      updateTextEditor(editor, "hello");
+
+      const text = h.elements[0] as ExcalidrawTextElement;
+      const lineHeightPx = getLineHeightInPx(text.fontSize, text.lineHeight);
+
+      expect(editor.style.lineHeight).toBe(`${lineHeightPx}px`);
+      expect(editor.style.paddingTop).toBe("0px");
     });
   });
 

@@ -7,6 +7,7 @@ import {
   isWritableElement,
   getFontString,
   getFontFamilyString,
+  getVerticalOffset,
   isTestEnv,
   MIME_TYPES,
   applyDarkModeFilter,
@@ -400,10 +401,39 @@ export const textWysiwyg = ({
       // Make sure text editor height doesn't go beyond viewport
       const editorMaxHeight =
         (appState.height - viewportY) / appState.zoom.value;
+
+      const lineHeightPx = getLineHeightInPx(
+        updatedTextElement.fontSize,
+        updatedTextElement.lineHeight,
+        updatedTextElement.text,
+      );
+      // extra headroom some scripts (e.g. Thai combining marks) need above
+      // the first line, since native line-height alone doesn't reserve any
+      // space above the top line and the editor clips on overflow — mirrors
+      // how the canvas/SVG renderers already offset every line by this
+      const verticalOffset = getVerticalOffset(
+        updatedTextElement.fontFamily,
+        updatedTextElement.fontSize,
+        lineHeightPx,
+        updatedTextElement.text,
+      );
+      const baselineLineHeightPx =
+        updatedTextElement.fontSize * updatedTextElement.lineHeight;
+      const baselineVerticalOffset = getVerticalOffset(
+        updatedTextElement.fontFamily,
+        updatedTextElement.fontSize,
+        baselineLineHeightPx,
+      );
+      const topReservedPx = Math.max(
+        0,
+        verticalOffset - baselineVerticalOffset,
+      );
+
       Object.assign(editable.style, {
         font,
         // must be defined *after* font ¯\_(ツ)_/¯
-        lineHeight: updatedTextElement.lineHeight,
+        lineHeight: `${lineHeightPx}px`,
+        paddingTop: `${topReservedPx}px`,
         width: `${width}px`,
         height: `${height}px`,
         left: `${viewportX}px`,
@@ -429,11 +459,7 @@ export const textWysiwyg = ({
         angle: angle as Radians,
         font,
         height: updatedTextElement.height,
-        lineHeightPx: getLineHeightInPx(
-          updatedTextElement.fontSize,
-          updatedTextElement.lineHeight,
-          updatedTextElement.text,
-        ),
+        lineHeightPx,
         textAlign,
         width: updatedTextElement.width,
         x: coordX,
