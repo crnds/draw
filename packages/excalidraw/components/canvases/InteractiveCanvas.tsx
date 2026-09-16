@@ -250,6 +250,7 @@ const getRelevantAppStateProps = (
   selectedLinearElement: appState.selectedLinearElement,
   multiElement: appState.multiElement,
   newElement: appState.newElement,
+  resizingElement: appState.resizingElement,
   isBindingEnabled: appState.isBindingEnabled,
   isMidpointSnappingEnabled: appState.isMidpointSnappingEnabled,
   gridModeEnabled: appState.gridModeEnabled,

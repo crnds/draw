@@ -1745,20 +1745,29 @@ const _renderInteractiveScene = ({
     );
   }
 
-  // Paint "width x height px" measurement labels: one per element normally,
-  // collapsing to a single combined label for the overall bounding box when
-  // more than one element is selected.
+  // Paint "width x height px" measurement labels, but only for elements the
+  // user is actively interacting with: being drawn, resized, or selected.
+  // One label per element normally, collapsing to a single combined label
+  // for the overall bounding box when more than one element is selected.
   if (appState.showDimensions) {
     const isMultiSelection = selectedElements.length > 1;
-    const selectedIds = isMultiSelection ? arrayToMap(selectedElements) : null;
+    const selectedIds = arrayToMap(selectedElements);
 
     visibleElements.forEach((element) => {
       if (isTextElement(element) && element.containerId) {
         // bound text: the container's own label already covers it
         return;
       }
-      if (selectedIds?.has(element.id)) {
+      if (isMultiSelection && selectedIds.has(element.id)) {
         // covered by the combined selection label below instead
+        return;
+      }
+      const isInteractedWith =
+        selectedIds.has(element.id) ||
+        appState.newElement?.id === element.id ||
+        appState.multiElement?.id === element.id ||
+        appState.resizingElement?.id === element.id;
+      if (!isInteractedWith) {
         return;
       }
       renderDimensionLabel(context, appState, element);
