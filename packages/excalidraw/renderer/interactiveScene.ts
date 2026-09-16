@@ -147,6 +147,59 @@ const getThemedColor = (
   theme: InteractiveCanvasAppState["theme"],
 ) => applyDarkModeFilter(color, theme === THEME.DARK);
 
+const DIMENSION_LABEL_FONT_SIZE = 12;
+const DIMENSION_LABEL_GAP = 6;
+const DIMENSION_LABEL_FONT_FAMILY =
+  "Assistant, system-ui, BlinkMacSystemFont, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+
+/**
+ * Draws a "width x height px" label centered below a (possibly rotated)
+ * bounding box, on the interactive canvas only (never exported/printed).
+ * Text size and the gap below the box stay constant on screen regardless
+ * of zoom, matching the pattern used for selection border stroke widths.
+ */
+const renderDimensionLabel = (
+  context: CanvasRenderingContext2D,
+  appState: InteractiveCanvasAppState,
+  box: { x: number; y: number; width: number; height: number; angle: number },
+) => {
+  const { x, y, width, height, angle } = box;
+  const roundedWidth = Math.round(width);
+  const roundedHeight = Math.round(height);
+
+  if (roundedWidth <= 0 && roundedHeight <= 0) {
+    return;
+  }
+
+  const zoom = appState.zoom.value;
+  const cx = x + width / 2;
+  const cy = y + height / 2;
+  const label = `${roundedWidth} × ${roundedHeight} px`;
+
+  context.save();
+  context.translate(appState.scrollX, appState.scrollY);
+  context.translate(cx, cy);
+  context.rotate(angle);
+
+  context.font = `${DIMENSION_LABEL_FONT_SIZE / zoom}px ${DIMENSION_LABEL_FONT_FAMILY}`;
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  context.lineJoin = "round";
+
+  const labelY = height / 2 + DIMENSION_LABEL_GAP / zoom;
+
+  // stroke a halo behind the text so it stays legible over any canvas
+  // background/content, then fill the actual glyphs on top
+  context.lineWidth = 3 / zoom;
+  context.strokeStyle = getThemedColor("#ffffff", appState.theme);
+  context.strokeText(label, 0, labelY);
+
+  context.fillStyle = getThemedColor("#1e1e1e", appState.theme);
+  context.fillText(label, 0, labelY);
+
+  context.restore();
+};
+
 const renderElbowArrowMidPointHighlight = (
   context: CanvasRenderingContext2D,
   appState: InteractiveCanvasAppState,
@@ -1690,6 +1743,37 @@ const _renderInteractiveScene = ({
       editingLinearElement,
       elementsMap,
     );
+  }
+
+  // Paint "width x height px" measurement labels: one per element normally,
+  // collapsing to a single combined label for the overall bounding box when
+  // more than one element is selected.
+  if (appState.showDimensions) {
+    const isMultiSelection = selectedElements.length > 1;
+    const selectedIds = isMultiSelection ? arrayToMap(selectedElements) : null;
+
+    visibleElements.forEach((element) => {
+      if (isTextElement(element) && element.containerId) {
+        // bound text: the container's own label already covers it
+        return;
+      }
+      if (selectedIds?.has(element.id)) {
+        // covered by the combined selection label below instead
+        return;
+      }
+      renderDimensionLabel(context, appState, element);
+    });
+
+    if (isMultiSelection) {
+      const [x1, y1, x2, y2] = getCommonBounds(selectedElements, elementsMap);
+      renderDimensionLabel(context, appState, {
+        x: x1,
+        y: y1,
+        width: x2 - x1,
+        height: y2 - y1,
+        angle: 0,
+      });
+    }
   }
 
   // Paint selection element

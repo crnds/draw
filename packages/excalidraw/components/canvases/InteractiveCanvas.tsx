@@ -253,6 +253,7 @@ const getRelevantAppStateProps = (
   isBindingEnabled: appState.isBindingEnabled,
   isMidpointSnappingEnabled: appState.isMidpointSnappingEnabled,
   gridModeEnabled: appState.gridModeEnabled,
+  showDimensions: appState.showDimensions,
   suggestedBinding: appState.suggestedBinding,
   hoveredArrowTextAnchor: appState.hoveredArrowTextAnchor,
   isRotating: appState.isRotating,

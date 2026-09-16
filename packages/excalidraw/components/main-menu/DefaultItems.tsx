@@ -14,6 +14,7 @@ import {
   actionToggleMidpointSnapping,
   actionToggleObjectsSnapMode,
   actionToggleSearchMenu,
+  actionToggleShowDimensions,
   actionToggleStats,
   actionToggleTheme,
   actionToggleZenMode,
@@ -639,6 +640,24 @@ const PreferencesToggleElementPropertiesItem = () => {
   );
 };
 
+export const PreferencesToggleShowDimensionsItem = () => {
+  const { t } = useI18n();
+  const actionManager = useExcalidrawActionManager();
+  const appState = useUIAppState();
+
+  return (
+    <DropdownMenuItemCheckbox
+      checked={appState.showDimensions}
+      onSelect={(event) => {
+        actionManager.executeAction(actionToggleShowDimensions);
+        event.preventDefault();
+      }}
+    >
+      {t("labels.toggleDimensions")}
+    </DropdownMenuItemCheckbox>
+  );
+};
+
 export const Preferences = ({
   children,
   additionalItems,
@@ -663,6 +682,7 @@ export const Preferences = ({
             <PreferencesToggleZenModeItem />
             <PreferencesToggleViewModeItem />
             <PreferencesToggleElementPropertiesItem />
+            <PreferencesToggleShowDimensionsItem />
             <PreferencesToggleArrowBindingItem />
             <PreferencesToggleMidpointSnappingItem />
           </>

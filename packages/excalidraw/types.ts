@@ -232,6 +232,7 @@ export type InteractiveCanvasAppState = Readonly<
     isBindingEnabled: AppState["isBindingEnabled"];
     isMidpointSnappingEnabled: AppState["isMidpointSnappingEnabled"];
     gridModeEnabled: AppState["gridModeEnabled"];
+    showDimensions: AppState["showDimensions"];
     suggestedBinding: AppState["suggestedBinding"];
     hoveredArrowTextAnchor: AppState["hoveredArrowTextAnchor"];
     isRotating: AppState["isRotating"];
@@ -503,6 +504,7 @@ export interface AppState {
   gridSize: number;
   gridStep: number;
   gridModeEnabled: boolean;
+  showDimensions: boolean;
   viewModeEnabled: boolean;
 
   /** top-most selected groups (i.e. does not include nested groups) */
@@ -960,6 +962,7 @@ export interface ExcalidrawProps {
     | { type: "custom"; customType: string };
   zenModeEnabled?: boolean;
   gridModeEnabled?: boolean;
+  showDimensions?: boolean;
   objectsSnapModeEnabled?: boolean;
   libraryReturnUrl?: string;
   theme?: Theme;
