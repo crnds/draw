@@ -19,6 +19,7 @@ export class Debug {
   private static LAST_FRAME_TIMESTAMP = 0;
   private static FRAME_COUNT = 0;
   private static ANIMATION_FRAME_ID: null | number = null;
+  private static LAST_FRAME_COUNT_LOG_TIME = 0;
 
   private static scheduleAnimationFrame = () => {
     if (Debug.DEBUG_LOG_INTERVAL_ID !== null) {
@@ -40,12 +41,30 @@ export class Debug {
       console.info("%c(starting perf recording)", "color: lime");
       Debug.DEBUG_LOG_INTERVAL_ID = window.setInterval(Debug.debugLogger, 1000);
       Debug.scheduleAnimationFrame();
+      Debug.LAST_FRAME_COUNT_LOG_TIME = performance.now();
     }
     Debug.LAST_DEBUG_LOG_CALL = Date.now();
   };
 
   private static debugLogger = () => {
+    const now = performance.now();
+    const elapsedMs =
+      Debug.LAST_FRAME_COUNT_LOG_TIME > 0
+        ? now - Debug.LAST_FRAME_COUNT_LOG_TIME
+        : 0;
+    Debug.LAST_FRAME_COUNT_LOG_TIME = now;
+    // rAF fires once per display refresh, so the counted frames over the
+    // elapsed interval give the actual display refresh rate (60/120/144Hz…)
+    const measuredFps =
+      elapsedMs > 0 ? (Debug.FRAME_COUNT * 1000) / elapsedMs : 0;
+    const frameBudget = measuredFps > 0 ? 1000 / measuredFps : 16.67;
+
     if (Debug.DEBUG_LOG_TIMES) {
+      if (measuredFps > 0) {
+        console.info(
+          `(measured display refresh: ${lessPrecise(measuredFps, 4)}fps)`,
+        );
+      }
       for (const [name, { t, times }] of Object.entries(Debug.TIMES_AGGR)) {
         if (times.length) {
           console.info(
@@ -66,9 +85,9 @@ export class Debug {
             `- ${times.length} calls - ${avgFrameTime}ms/frame across ${
               Debug.FRAME_COUNT
             } frames (${lessPrecise(
-              (avgFrameTime / 16.67) * 100,
+              (avgFrameTime / frameBudget) * 100,
               1,
-            )}% of frame budget)`,
+            )}% of ${lessPrecise(frameBudget, 3)}ms frame budget)`,
           );
           Debug.TIMES_AVG[name] = {
             t,
@@ -92,6 +111,7 @@ export class Debug {
       Debug.ANIMATION_FRAME_ID = null;
       Debug.FRAME_COUNT = 0;
       Debug.LAST_FRAME_TIMESTAMP = 0;
+      Debug.LAST_FRAME_COUNT_LOG_TIME = 0;
 
       Debug.DEBUG_LOG_INTERVAL_ID = null;
       Debug.TIMES_AGGR = {};
