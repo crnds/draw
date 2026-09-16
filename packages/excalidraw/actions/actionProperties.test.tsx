@@ -27,8 +27,10 @@ describe("element locking", () => {
       // just in case we change it in the future
       expect(color).not.toBe(COLOR_PALETTE.transparent);
 
+      // rectangle/diamond/ellipse are the "shape" color domain — they read
+      // their own current-item default, not the generic one
       API.setAppState({
-        currentItemBackgroundColor: color,
+        currentItemShapeBackgroundColor: color,
       });
       const activeColor = queryByTestId(
         document.body,

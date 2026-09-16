@@ -357,7 +357,9 @@ describe("sticky notes", () => {
       expect(getElement(note.id).strokeColor).toBe(RED);
       // the note's visible text is its label
       expect(getElement(label.id).strokeColor).toBe(RED);
-      expect(h.state.currentItemStrokeColor).toBe(RED);
+      // a rectangle is the "shape" domain, not "regular" — the mixed pick
+      // writes the domains actually present (sticky + shape), not regular
+      expect(h.state.currentItemShapeStrokeColor).toBe(RED);
       expect(h.state.currentItemStickynoteStrokeColor).toBe(RED);
     });
 

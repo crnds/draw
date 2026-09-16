@@ -31,16 +31,20 @@ export type ColorProperty = "strokeColor" | "backgroundColor";
 
 /**
  * Sticky notes are their own color domain: own defaults, own top picks, no
- * transparent. A pick targets the regular domain, the sticky domain, or both
- * ("mixed" selections write both defaults and use the regular picker).
+ * transparent. Rectangle/diamond/ellipse ("shape") are a second domain with
+ * their own defaults, sharing the regular palette/top-picks. A pick targets
+ * one domain, or several at once ("mixed" selections write every domain
+ * present and use the regular picker).
  */
-export type ColorTargetKind = "regular" | "sticky" | "mixed";
+export type ColorTargetKind = "regular" | "sticky" | "shape" | "mixed";
 
 export type ColorDefaultKey =
   | "currentItemStrokeColor"
   | "currentItemBackgroundColor"
   | "currentItemStickynoteStrokeColor"
-  | "currentItemStickynoteBackgroundColor";
+  | "currentItemStickynoteBackgroundColor"
+  | "currentItemShapeStrokeColor"
+  | "currentItemShapeBackgroundColor";
 
 export type ColorTargetAppState = Pick<
   AppState,
@@ -62,15 +66,17 @@ export type ColorTarget = {
 
 const DEFAULT_KEYS: Record<
   ColorProperty,
-  Record<"regular" | "sticky", ColorDefaultKey>
+  Record<"regular" | "sticky" | "shape", ColorDefaultKey>
 > = {
   strokeColor: {
     regular: "currentItemStrokeColor",
     sticky: "currentItemStickynoteStrokeColor",
+    shape: "currentItemShapeStrokeColor",
   },
   backgroundColor: {
     regular: "currentItemBackgroundColor",
     sticky: "currentItemStickynoteBackgroundColor",
+    shape: "currentItemShapeBackgroundColor",
   },
 };
 
@@ -87,6 +93,18 @@ const isStickyNoteColorTarget = (
 ) =>
   isStickyNoteElement(element) ||
   (isTextElement(element) && isStickyNoteBoundText(element, elementsMap));
+
+const SHAPE_ELEMENT_TYPES: ReadonlySet<ExcalidrawElement["type"]> = new Set([
+  "rectangle",
+  "diamond",
+  "ellipse",
+]);
+
+const isShapeColorTarget = (element: ExcalidrawElement) =>
+  SHAPE_ELEMENT_TYPES.has(element.type);
+
+const isShapeToolType = (toolType: string) =>
+  SHAPE_ELEMENT_TYPES.has(toolType as ExcalidrawElement["type"]);
 
 /**
  * Who a stroke/background pick targets. Resolve it from the state an action
@@ -129,18 +147,36 @@ export const resolveColorTarget = (
   }
 
   let kind: ColorTargetKind;
+  let presentKinds: ReadonlySet<"regular" | "sticky" | "shape">;
+
   if (!targets.length) {
-    kind = appState.activeTool.type === "stickynote" ? "sticky" : "regular";
+    const toolKind =
+      appState.activeTool.type === "stickynote"
+        ? "sticky"
+        : isShapeToolType(appState.activeTool.type)
+        ? "shape"
+        : "regular";
+    kind = toolKind;
+    presentKinds = new Set([toolKind]);
   } else {
     const stickyCount = targets.filter((element) =>
       isStickyNoteColorTarget(element, elementsMap),
     ).length;
-    kind =
-      stickyCount === 0
-        ? "regular"
-        : stickyCount === targets.length
-        ? "sticky"
-        : "mixed";
+    const shapeCount = targets.filter(isShapeColorTarget).length;
+    const regularCount = targets.length - stickyCount - shapeCount;
+
+    const present = new Set<"regular" | "sticky" | "shape">();
+    if (regularCount > 0) {
+      present.add("regular");
+    }
+    if (stickyCount > 0) {
+      present.add("sticky");
+    }
+    if (shapeCount > 0) {
+      present.add("shape");
+    }
+    presentKinds = present;
+    kind = present.size === 1 ? [...present][0] : "mixed";
   }
 
   const keys = DEFAULT_KEYS[property];
@@ -149,8 +185,8 @@ export const resolveColorTarget = (
   return {
     kind,
     property,
-    appStateKeys: kind === "mixed" ? [keys.regular, keys.sticky] : [keys[kind]],
-    currentValue: appState[kind === "sticky" ? keys.sticky : keys.regular],
+    appStateKeys: [...presentKinds].map((presentKind) => keys[presentKind]),
+    currentValue: appState[kind === "mixed" ? keys.regular : keys[kind]],
     palette: isStroke
       ? DEFAULT_ELEMENT_STROKE_COLOR_PALETTE
       : DEFAULT_ELEMENT_BACKGROUND_COLOR_PALETTE,

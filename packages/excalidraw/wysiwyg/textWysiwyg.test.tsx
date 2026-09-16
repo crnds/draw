@@ -1022,6 +1022,17 @@ describe("textWysiwyg", () => {
     });
 
     it("should'nt bind text to container when not double clicked on center", async () => {
+      // a transparent container only binds text near its center; off-center
+      // clicks land outside its (invisible) fill and hit nothing
+      const rectangle = API.createElement({
+        type: "rectangle",
+        x: 10,
+        y: 20,
+        width: 90,
+        height: 75,
+        backgroundColor: "transparent",
+      });
+      API.setElements([rectangle]);
       expect(h.elements.length).toBe(1);
       expect(h.elements[0].id).toBe(rectangle.id);
 

@@ -434,6 +434,8 @@ export interface AppState {
   currentItemStrokeColor: string;
   currentItemStickynoteStrokeColor: string;
   currentItemStickynoteBackgroundColor: string;
+  currentItemShapeStrokeColor: string;
+  currentItemShapeBackgroundColor: string;
   currentItemBackgroundColor: string;
   currentItemFillStyle: ExcalidrawElement["fillStyle"];
   currentItemStrokeWidthKey: StrokeWidthKey;

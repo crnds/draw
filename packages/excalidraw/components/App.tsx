@@ -876,7 +876,7 @@ class App extends React.Component<AppProps, AppState> {
       zenModeEnabled = false,
       gridModeEnabled = false,
       showDimensions = defaultAppState.showDimensions,
-      objectsSnapModeEnabled = false,
+      objectsSnapModeEnabled = defaultAppState.objectsSnapModeEnabled,
       theme = defaultAppState.theme,
       name = `${t("labels.untitled")}-${getDateTime()}`,
     } = props;
@@ -10618,16 +10618,25 @@ class App extends React.Component<AppProps, AppState> {
       y: gridY,
     });
 
+    const isShapeElementType =
+      elementType === "rectangle" ||
+      elementType === "diamond" ||
+      elementType === "ellipse";
+
     const baseElementAttributes = {
       x: gridX,
       y: gridY,
       strokeColor:
         elementType === "stickynote"
           ? this.state.currentItemStickynoteStrokeColor
+          : isShapeElementType
+          ? this.state.currentItemShapeStrokeColor
           : this.state.currentItemStrokeColor,
       backgroundColor:
         elementType === "stickynote"
           ? this.state.currentItemStickynoteBackgroundColor
+          : isShapeElementType
+          ? this.state.currentItemShapeBackgroundColor
           : this.state.currentItemBackgroundColor,
       fillStyle: this.state.currentItemFillStyle,
       strokeWidth: this.getCurrentItemStrokeWidth(elementType),

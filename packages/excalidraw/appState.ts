@@ -1,5 +1,6 @@
 import {
   ARROW_TYPE,
+  COLOR_PALETTE,
   DEFAULT_ELEMENT_PROPS,
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
@@ -39,6 +40,8 @@ export const getDefaultAppState = (): Omit<
     currentItemStrokeColor: DEFAULT_ELEMENT_PROPS.strokeColor,
     currentItemStickynoteStrokeColor: DEFAULT_ELEMENT_PROPS.strokeColor,
     currentItemStickynoteBackgroundColor: DEFAULT_STICKY_NOTE_BG,
+    currentItemShapeStrokeColor: COLOR_PALETTE.transparent,
+    currentItemShapeBackgroundColor: "#e9ecef",
     currentItemRoundness: "sharp",
     currentItemArrowType: ARROW_TYPE.round,
     currentItemStrokeStyle: DEFAULT_ELEMENT_PROPS.strokeStyle,
@@ -125,7 +128,7 @@ export const getDefaultAppState = (): Omit<
       x: 0,
       y: 0,
     },
-    objectsSnapModeEnabled: false,
+    objectsSnapModeEnabled: true,
     isCropping: false,
     croppingElementId: null,
     searchMatches: null,
@@ -192,6 +195,12 @@ const APP_STATE_STORAGE_CONF = (<
     server: false,
   },
   currentItemStickynoteBackgroundColor: {
+    browser: true,
+    export: false,
+    server: false,
+  },
+  currentItemShapeStrokeColor: { browser: true, export: false, server: false },
+  currentItemShapeBackgroundColor: {
     browser: true,
     export: false,
     server: false,
