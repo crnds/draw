@@ -134,7 +134,7 @@ export const getDefaultAppState = (): Omit<
     lockedMultiSelections: {},
     activeLockedId: null,
     bindMode: "orbit",
-    boxSelectionMode: "contain",
+    boxSelectionMode: "overlap",
     colorTopPicks: {
       elementStroke: null,
       elementBackground: null,

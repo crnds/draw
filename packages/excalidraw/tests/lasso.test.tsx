@@ -1908,8 +1908,8 @@ describe("Box selection mode (through the lasso tool)", () => {
       });
     });
 
-    it("selects only enclosed elements with the default mode ('contain')", () => {
-      expect(h.state.boxSelectionMode).toBe("contain");
+    it("selects only enclosed elements in 'contain' mode", () => {
+      act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
       drawLasso(LASSO);
 
@@ -1956,9 +1956,10 @@ describe("Box selection mode (through the lasso tool)", () => {
       ] as [number, number][]
     ).map(([x, y]) => pointFrom<GlobalPoint>(x, y));
 
+    act(() => h.app.setState({ boxSelectionMode: "contain" }));
+
     drawLasso(LASSO);
 
-    expect(h.state.boxSelectionMode).toBe("contain");
     expect(selectedIds()).toEqual([]);
 
     // NOTE: the very same lasso still selects it in "overlap" mode
@@ -2005,7 +2006,7 @@ describe("Box selection mode (through the lasso tool)", () => {
       ] as [number, number][]
     ).map(([x, y]) => pointFrom<GlobalPoint>(x, y));
 
-    expect(h.state.boxSelectionMode).toBe("contain");
+    act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
     drawLasso(LASSO);
 
@@ -2056,7 +2057,7 @@ describe("Box selection mode (through the lasso tool)", () => {
     });
 
     it("selects nothing in 'contain' mode, as the group isn't complete", () => {
-      expect(h.state.boxSelectionMode).toBe("contain");
+      act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
       drawLasso(LASSO);
 
@@ -2072,7 +2073,7 @@ describe("Box selection mode (through the lasso tool)", () => {
     });
 
     it("selects the whole group once all its members are enclosed", () => {
-      expect(h.state.boxSelectionMode).toBe("contain");
+      act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
       drawLasso(
         (
@@ -2127,7 +2128,7 @@ describe("Box selection mode (through the lasso tool)", () => {
       ] as [number, number][]
     ).map(([x, y]) => pointFrom<GlobalPoint>(x, y));
 
-    expect(h.state.boxSelectionMode).toBe("contain");
+    act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
     drawLasso(LASSO);
 
@@ -2159,7 +2160,7 @@ describe("Box selection mode (through the lasso tool)", () => {
       ] as [number, number][]
     ).map(([x, y]) => pointFrom<GlobalPoint>(x, y));
 
-    expect(h.state.boxSelectionMode).toBe("contain");
+    act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
     drawLasso(LASSO);
 
@@ -2209,7 +2210,7 @@ describe("Box selection mode (through the lasso tool)", () => {
       ],
     } as Record<string, [number, number][]>;
 
-    expect(h.state.boxSelectionMode).toBe("contain");
+    act(() => h.app.setState({ boxSelectionMode: "contain" }));
 
     for (const [side, lasso] of Object.entries(LASSOS)) {
       drawLasso(

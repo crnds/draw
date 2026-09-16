@@ -61,7 +61,9 @@ const getOutlineBounds = (element: ReturnType<typeof API.createElement>) => {
 
 describe("box-selection", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(
+      <Excalidraw initialData={{ appState: { boxSelectionMode: "contain" } }} />,
+    );
   });
 
   it("should allow adding to selection via box-select when holding shift", async () => {
@@ -183,7 +185,7 @@ describe("lasso reselection", () => {
     });
 
     // NOTE: the lasso starts inside the common bounds of the selection, and
-    // encloses rectA only (the default box selection mode being "contain")
+    // encloses rectA only (rectB lies entirely outside the lasso trail)
     Keyboard.withModifierKeys({ ctrl: true, alt: true }, () => {
       mouse.downAt(110, 50);
       mouse.moveTo(110, -50);
@@ -791,7 +793,9 @@ describe("box-selection overlap mode", () => {
 
 describe("inner box-selection", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(
+      <Excalidraw initialData={{ appState: { boxSelectionMode: "contain" } }} />,
+    );
   });
   it("selecting elements visually nested inside another", async () => {
     const rect1 = API.createElement({
