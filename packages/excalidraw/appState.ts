@@ -11,7 +11,6 @@ import {
   STATS_PANELS,
   THEME,
   DEFAULT_GRID_STEP,
-  isTestEnv,
   DEFAULT_STICKY_NOTE_BG,
 } from "@excalidraw/common";
 
@@ -41,7 +40,7 @@ export const getDefaultAppState = (): Omit<
     currentItemStrokeColor: DEFAULT_ELEMENT_PROPS.strokeColor,
     currentItemStickynoteStrokeColor: DEFAULT_ELEMENT_PROPS.strokeColor,
     currentItemStickynoteBackgroundColor: DEFAULT_STICKY_NOTE_BG,
-    currentItemRoundness: isTestEnv() ? "sharp" : "round",
+    currentItemRoundness: "sharp",
     currentItemArrowType: ARROW_TYPE.round,
     currentItemStrokeStyle: DEFAULT_ELEMENT_PROPS.strokeStyle,
     currentItemStrokeWidthKey: DEFAULT_ELEMENT_STROKE_WIDTH_KEY,
