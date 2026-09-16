@@ -1,6 +1,5 @@
 import {
   Excalidraw,
-  TTDDialogTrigger,
   CaptureUpdateAction,
   reconcileElements,
   ExcalidrawAPIProvider,
@@ -126,7 +125,6 @@ import DebugCanvas, {
   loadSavedDebugState,
 } from "./components/DebugCanvas";
 import { useSimulatedCollaborators } from "./debugCollaborators";
-import { AIComponents } from "./components/AI";
 
 import "./index.scss";
 
@@ -843,6 +841,7 @@ const ExcalidrawWrapper = () => {
         initialData={initialStatePromiseRef.current.promise}
         isCollaborating={isCollaborating}
         onPointerUpdate={collabAPI?.onPointerUpdate}
+        aiEnabled={false}
         UIOptions={{
           canvasActions: {
             toggleTheme: true,
@@ -892,9 +891,7 @@ const ExcalidrawWrapper = () => {
           <OverwriteConfirmDialog.Actions.SaveToDisk />
         </OverwriteConfirmDialog>
         <AppFooter onChange={() => excalidrawAPI?.refresh()} />
-        {excalidrawAPI && <AIComponents excalidrawAPI={excalidrawAPI} />}
 
-        <TTDDialogTrigger />
         {isCollaborating && isOffline && (
           <div className="alertalert--warning">
             {t("alerts.collabOfflineWarning")}
